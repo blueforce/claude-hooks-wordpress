@@ -117,4 +117,6 @@ Getestet unter macOS mit Claude Code. Unter Linux funktioniert alles ausser der 
 
 ## Lizenz
 
-MIT, siehe `LICENSE`. Nutzung auf eigene Verantwortung, ohne Gewähr.
+MIT, siehe [`LICENSE`](LICENSE). Eine deutsche Übersetzung liegt zur
+Verständlichkeit in [`LICENSE-de.md`](LICENSE-de.md), massgebend ist der
+englische Originaltext. Nutzung auf eigene Verantwortung, ohne Gewähr.

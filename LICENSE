@@ -2,17 +2,20 @@ MIT License
 
 Copyright (c) 2026 Roger Perren, Blueforce Digital Solutions
 
-Hiermit wird unentgeltlich jeder Person, die eine Kopie dieser Software und
-der zugehoerigen Dokumentation erhaelt, die Erlaubnis erteilt, sie
-uneingeschraenkt zu nutzen, zu kopieren, zu veraendern, zusammenzufuegen, zu
-veroeffentlichen, zu verbreiten, zu unterlizenzieren und zu verkaufen, unter
-folgenden Bedingungen:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Der obige Urheberrechtsvermerk und dieser Erlaubnisvermerk sind in allen
-Kopien oder wesentlichen Teilen der Software beizulegen.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-DIE SOFTWARE WIRD OHNE JEDE AUSDRUECKLICHE ODER STILLSCHWEIGENDE GARANTIE
-BEREITGESTELLT, EINSCHLIESSLICH DER GARANTIE ZUR EIGNUNG FUER EINEN
-BESTIMMTEN ZWECK. IN KEINEM FALL SIND DIE AUTOREN FUER ANSPRUECHE ODER
-SCHAEDEN VERANTWORTLICH ZU MACHEN, DIE SICH AUS DER NUTZUNG DER SOFTWARE
-ERGEBEN.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
