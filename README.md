@@ -2,7 +2,7 @@
 
 Ein kleines, getestetes Set an Hooks für Claude Code. Es prüft geschriebene Dateien auf Syntaxfehler, schützt Verzeichnisse, die niemand von Hand ändern sollte, und fragt nach, bevor etwas Unwiderrufliches passiert.
 
-Version 1.1.0, getestet mit 79 Prüffällen. Zusammengestellt von [Blueforce Digital Solutions](https://blueforce.ch).
+Version 1.1.1, getestet mit 79 Prüffällen. Zusammengestellt von [Blueforce Digital Solutions](https://blueforce.ch).
 
 ## Was drin ist
 
