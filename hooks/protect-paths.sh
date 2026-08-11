@@ -57,7 +57,10 @@ fi
 if [ -n "$sperrliste" ]; then
   while IFS= read -r zeile; do
     muster="${zeile%%#*}"                    # Kommentar abschneiden
-    muster="$(printf '%s' "$muster" | sed 's/[[:space:]]*$//;s/^[[:space:]]*//')"
+    # Leerraum mit Bash-Bordmitteln trimmen. Ein sed pro Zeile waere hier ein
+    # Subprozess pro Muster, und dieser Hook laeuft bei jedem Dateizugriff.
+    muster="${muster#"${muster%%[![:space:]]*}"}"
+    muster="${muster%"${muster##*[![:space:]]}"}"
     [ -n "$muster" ] || continue
     # shellcheck disable=SC2254 -- Glob-Vergleich ist hier gewollt.
     case "$file" in
