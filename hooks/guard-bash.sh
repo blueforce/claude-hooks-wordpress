@@ -10,6 +10,18 @@ input=$(cat)
 cmd=$(jq -r '.tool_input.command // empty' <<<"$input")
 [ -n "$cmd" ] || exit 0
 
+# Schreibzugriffe auf entfernte WordPress-Datenbanken zuerst pruefen: fehlt ein
+# frischer Snapshot, gibt es keinen Rollback-Punkt, und das wiegt schwerer als
+# alles Weitere hier. Der Teilpruefer gibt nur im Blockfall etwas aus.
+DB_GUARD="$DIR/wp-db-guard.sh"
+if [ -x "$DB_GUARD" ]; then
+  db_entscheid=$(printf '%s' "$input" | "$DB_GUARD" 2>/dev/null)
+  if [ -n "$db_entscheid" ]; then
+    printf '%s\n' "$db_entscheid"
+    exit 0
+  fi
+fi
+
 # Hart blockiert: Loeschbefehl, dessen Ziel exakt / oder ~ ist.
 # Anfuehrungszeichen werden fuer diese eine Pruefung entfernt, sonst kaeme
 # rm -rf "/" an der Sperre vorbei. Bewusst als Regex, damit echte Pfade

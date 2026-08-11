@@ -152,6 +152,37 @@ check(P, edit(f"{R}/vendor/x.php", "Read"), "allow", "vendor lesen bleibt erlaub
 check(P, edit(f"{R}/wp-includes/version.php", "Read"), "allow", "Core lesen bleibt erlaubt")
 check(P, edit(f"{R}/wp-content/themes/bf/environment.php"), "allow", "environment.php ist kein env-Treffer")
 
+# --- Schreibschutz entfernter Datenbanken (wp-db-guard) ----------------------
+# Der Marker-Ordner zeigt auf ein garantiert leeres Verzeichnis, damit die Tests
+# nicht davon abhaengen, ob zufaellig gerade ein echter Snapshot frisch ist.
+os.environ["WP_DB_GUARD_MARKERDIR"] = "/tmp/wp-db-guard-pruefstand-leer"
+check(G, bash("ssh live 'wp post update 12 --post_status=draft'"), "deny", "Remote post update ohne Snapshot")
+check(G, bash("ssh live 'wp option update siteurl https://x'"), "deny", "Remote option update ohne Snapshot")
+check(G, bash("ssh live 'wp search-replace alt neu'"), "deny", "Remote search-replace ohne Snapshot")
+check(G, bash("scp lokal.db live:/home/x/data/app.db"), "deny", "Datenbankdatei per scp auf den Server")
+check(G, bash("rsync -av dump.sql live:/home/x/"), "deny", "Datenbank-Dump per rsync auf den Server")
+check(G, bash("ssh live 'wp db query \"SELECT 1\"'"), "allow", "Remote db query nur lesend")
+check(G, bash("ssh live 'wp search-replace alt neu --dry-run'"), "allow", "search-replace als Trockenlauf")
+check(G, bash("ssh live 'wp plugin update --all'"), "allow", "Remote Plugin-Update ist Code, keine Inhalte")
+check(G, bash("wp post update 12 --post_status=draft"), "allow", "lokaler Schreibzugriff bleibt frei")
+check(G, bash("ssh live 'ls -la'"), "allow", "harmloser Remote-Befehl")
+
+# Mit frischem Snapshot muss derselbe Befehl durchgehen.
+os.makedirs("/tmp/wp-db-guard-pruefstand-frisch", exist_ok=True)
+open("/tmp/wp-db-guard-pruefstand-frisch/marker", "w").close()
+os.environ["WP_DB_GUARD_MARKERDIR"] = "/tmp/wp-db-guard-pruefstand-frisch"
+check(G, bash("ssh live 'wp post update 12 --post_status=draft'"), "allow", "Remote-Schreibzugriff MIT frischem Snapshot")
+os.environ["WP_DB_GUARD_MARKERDIR"] = "/tmp/wp-db-guard-pruefstand-leer"
+
+# --- Eigene Sperrliste (produktive Instanzen) --------------------------------
+os.environ["CLAUDE_HOOKS_PROTECTED"] = "*/kunde-live/*:*/produktion.ch/*"
+check(P, edit("/Users/x/Sites/kunde-live/index.php"), "ask", "Pfad aus der Sperrliste")
+check(P, edit("/Users/x/Sites/produktion.ch/wp-content/themes/a/style.css"), "ask", "zweites Muster der Sperrliste")
+check(P, edit("/Users/x/Sites/kunde-live/index.php", "Read"), "allow", "Lesen bleibt trotz Sperrliste erlaubt")
+check(P, edit(f"{R}/wp-content/themes/bf/style.css"), "allow", "Pfad ausserhalb der Sperrliste")
+del os.environ["CLAUDE_HOOKS_PROTECTED"]
+check(P, edit("/Users/x/Sites/kunde-live/index.php"), "allow", "ohne Sperrliste kein Zusatzschutz")
+
 # --- Robustheit --------------------------------------------------------------
 check(G, {}, "allow", "leeres Objekt", raw="{}")
 check(P, {}, "allow", "leeres Objekt", raw="{}")

@@ -2,7 +2,7 @@
 
 Ein kleines, getestetes Set an Hooks für Claude Code. Es prüft geschriebene Dateien auf Syntaxfehler, schützt Verzeichnisse, die niemand von Hand ändern sollte, und fragt nach, bevor etwas Unwiderrufliches passiert.
 
-Version 1.0.0, getestet mit 63 Prüffällen. Zusammengestellt von [Blueforce Digital Solutions](https://blueforce.ch).
+Version 1.1.0, getestet mit 79 Prüffällen. Zusammengestellt von [Blueforce Digital Solutions](https://blueforce.ch).
 
 ## Was drin ist
 
@@ -10,7 +10,8 @@ Version 1.0.0, getestet mit 63 Prüffällen. Zusammengestellt von [Blueforce Dig
 |---|---|---|
 | `lint-file.sh` | PostToolUse | `php -l` auf PHP-Dateien, JSON-Prüfung auf `theme.json`, `package.json`, `composer.json`, `block.json`. Ein Fehler geht direkt an das Modell zurück und wird in derselben Runde korrigiert |
 | `protect-paths.sh` | PreToolUse | lehnt Schreibzugriffe auf `vendor`, `node_modules`, `wp-admin`, `wp-includes`, `dist`, `build`, `.git` ab. Fragt nach bei `wp-config.php`, `.env`, `secrets*.php`, `.htaccess` und Schlüsseldateien, auch beim Lesen. Lesen von `vendor` und Core bleibt erlaubt |
-| `guard-bash.sh` | PreToolUse | blockiert das Löschen von `/` und `~`. Fragt nach bei Live-Deploy, Datenbankbefehlen mit Datenverlust, `git push --force`, `git reset --hard`, `rm -rf`, `chmod 777` und bei Schreibzugriffen auf geschützte Pfade über die Shell |
+| `guard-bash.sh` | PreToolUse | blockiert das Löschen von `/` und `~`. Fragt nach bei Live-Deploy, Datenbankbefehlen mit Datenverlust, `git push --force`, `git reset --hard`, `rm -rf`, `chmod 777` und bei Schreibzugriffen auf geschützte Pfade über die Shell. Ruft vorab `wp-db-guard.sh` auf |
+| `wp-db-guard.sh` | wird eingebunden | lehnt Schreibzugriffe auf entfernte WordPress-Datenbanken ab, solange kein frischer Snapshot vorliegt: `wp post/option/term/user … update\|delete`, `search-replace`, `db import\|reset\|drop`, schreibende `db query` und das Schieben von Datenbankdateien per `scp`/`rsync`. Lesende Abfragen, `--dry-run`, Plugin-Updates und lokale Aufrufe bleiben frei |
 | `notify.sh` | Notification | Systemmeldung, wenn Claude Code auf eine Freigabe wartet. macOS über `osascript`, sonst über eine Terminalsequenz |
 | `_lib.sh` | wird eingebunden | Prüfung auf `jq` und die gemeinsame Entscheidungsausgabe. Kein eigener Hook |
 
@@ -71,6 +72,40 @@ In Claude Code zeigt `/hooks` alle konfigurierten Hooks samt Quelle.
 ## Anpassen
 
 Die Muster stehen in `case`-Blöcken oben in den Skripten. `deny` lehnt ab, `ask` fragt nach. Nach jeder Änderung `pruefstand.py` laufen lassen, das fängt Tippfehler in regulären Ausdrücken ab, bevor sie im Alltag stören.
+
+### Eigene Sperrliste für produktive Instanzen
+
+Produktive Kundenprojekte, eingefrorene Altsysteme oder fremde Repos lassen sich schützen, ohne die Pfade ins Skript zu schreiben. `protect-paths.sh` liest sie aus der ersten Quelle, die es findet:
+
+1. Umgebungsvariable `CLAUDE_HOOKS_PROTECTED` (Muster durch `:` getrennt)
+2. `$CLAUDE_PROJECT_DIR/.claude/protected-paths.txt`
+3. `~/.claude/protected-paths.txt`
+
+Ein Glob-Muster pro Zeile, `#` leitet einen Kommentar ein:
+
+```
+*/kunde-live/*
+*/produktion.ch/*
+```
+
+Ein Treffer führt zu `ask`, nicht zu `deny`: Gezielte Arbeit an so einem Pfad bleibt möglich, aber nie unbemerkt. Lesen bleibt frei. Die Datei gehört nicht ins Repo, damit keine Kundennamen veröffentlicht werden.
+
+### Snapshot-Zwang für entfernte Datenbanken
+
+`wp-db-guard.sh` lässt einen entfernten Schreibzugriff nur zu, wenn im Marker-Verzeichnis eine Datei liegt, die jünger ist als das Frischefenster. Diesen Marker schreibt das eigene Snapshot-Werkzeug nach erfolgreicher Sicherung, zum Beispiel:
+
+```bash
+mkdir -p ~/.cache/wp-db-snapshots
+touch ~/.cache/wp-db-snapshots/"$(date +%s)-$ziel"
+```
+
+Einstellbar per Umgebungsvariable:
+
+| Variable | Bedeutung | Vorgabe |
+|---|---|---|
+| `WP_DB_GUARD_FRESH_MIN` | Frischefenster in Minuten | `30` |
+| `WP_DB_GUARD_MARKERDIR` | Verzeichnis der Marker | `~/.cache/wp-db-snapshots` |
+| `WP_DB_GUARD_HINT` | eigener Behebungshinweis in der Meldung | allgemeiner Text |
 
 ## Grenzen
 

@@ -32,4 +32,41 @@ case "$file" in
     decide deny "Generiertes oder internes Verzeichnis, bitte die Quelle aendern: $file" ;;
 esac
 
+# ── Eigene Sperrliste ────────────────────────────────────────────────────────
+# Produktive Kundeninstanzen, eingefrorene Altsysteme, fremde Projekte: Pfade,
+# die zwar beschreibbar sind, aber nie versehentlich getroffen werden duerfen.
+# Die Muster stehen bewusst NICHT hier im Code, sondern in einer lokalen Datei,
+# damit dieses Repo keine Kundennamen enthaelt.
+#
+# Quelle (die erste vorhandene gewinnt):
+#   1. Umgebungsvariable CLAUDE_HOOKS_PROTECTED (Muster durch : getrennt)
+#   2. $CLAUDE_PROJECT_DIR/.claude/protected-paths.txt
+#   3. ~/.claude/protected-paths.txt
+# Format der Datei: ein Glob-Muster pro Zeile, «#» leitet einen Kommentar ein.
+# Entscheidung ist bewusst «ask» und nicht «deny»: gezielte Arbeit an so einem
+# Pfad bleibt moeglich, aber nie unbemerkt.
+sperrliste=""
+if [ -n "$CLAUDE_HOOKS_PROTECTED" ]; then
+  sperrliste=$(printf '%s' "$CLAUDE_HOOKS_PROTECTED" | tr ':' '\n')
+elif [ -n "$CLAUDE_PROJECT_DIR" ] && [ -f "$CLAUDE_PROJECT_DIR/.claude/protected-paths.txt" ]; then
+  sperrliste=$(cat "$CLAUDE_PROJECT_DIR/.claude/protected-paths.txt")
+elif [ -f "$HOME/.claude/protected-paths.txt" ]; then
+  sperrliste=$(cat "$HOME/.claude/protected-paths.txt")
+fi
+
+if [ -n "$sperrliste" ]; then
+  while IFS= read -r zeile; do
+    muster="${zeile%%#*}"                    # Kommentar abschneiden
+    muster="$(printf '%s' "$muster" | sed 's/[[:space:]]*$//;s/^[[:space:]]*//')"
+    [ -n "$muster" ] || continue
+    # shellcheck disable=SC2254 -- Glob-Vergleich ist hier gewollt.
+    case "$file" in
+      $muster)
+        decide ask "Geschuetzter Pfad laut eigener Sperrliste ($muster). Produktive oder fremde Instanz, bitte ausdruecklich bestaetigen: $file" ;;
+    esac
+  done <<EOF
+$sperrliste
+EOF
+fi
+
 exit 0
