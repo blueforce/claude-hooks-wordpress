@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# wp-db-guard.sh — Schreibschutz fuer entfernte WordPress-Datenbanken.
+# wp-db-guard.sh — Schreibschutz für entfernte WordPress-Datenbanken.
 #
 # Wird von guard-bash.sh (PreToolUse, Bash) aufgerufen und blockt Remote-DB-
-# SCHREIBzugriffe ueber ssh, solange kein frischer Snapshot existiert. Damit
+# SCHREIBzugriffe über ssh, solange kein frischer Snapshot existiert. Damit
 # kann ein Eingriff nie ohne Rollback-Punkt passieren — deterministisch, nicht
-# nur als Absichtserklaerung in einer Projektregel.
+# nur als Absichtserklärung in einer Projektregel.
 #
 # Liest PreToolUse-JSON von stdin (.tool_input.command) und entscheidet:
 #   - kein Treffer, lokaler Aufruf oder frischer Snapshot  -> erlauben (keine Ausgabe)
 #   - Remote-DB-Schreibzugriff ohne frischen Snapshot      -> deny (JSON)
 #
-# Frische = irgendeine Marker-Datei unter MARKERDIR, juenger als FRESH_MIN.
+# Frische = irgendeine Marker-Datei unter MARKERDIR, jünger als FRESH_MIN.
 # Den Marker schreibt das eigene Snapshot-Werkzeug nach erfolgreichem Sichern.
 #
 # Konfigurierbar per Umgebungsvariable:
@@ -23,18 +23,18 @@ FRESH_MIN="${WP_DB_GUARD_FRESH_MIN:-30}"
 MARKERDIR="${WP_DB_GUARD_MARKERDIR:-$HOME/.cache/wp-db-snapshots}"
 HINT="${WP_DB_GUARD_HINT:-Zuerst einen Snapshot der Ziel-Datenbank ziehen, danach denselben Befehl wiederholen.}"
 
-# jq fehlt -> nicht blockieren (fail-open NUR hier: ohne jq laesst sich die
-# Eingabe nicht zuverlaessig parsen, und ein Hook soll die Arbeit nicht
+# jq fehlt -> nicht blockieren (fail-open NUR hier: ohne jq lässt sich die
+# Eingabe nicht zuverlässig parsen, und ein Hook soll die Arbeit nicht
 # grundlos lahmlegen).
 command -v jq >/dev/null 2>&1 || exit 0
 
 cmd="$(jq -r '.tool_input.command // empty' 2>/dev/null)"
 [ -n "$cmd" ] || exit 0
 
-# Nur entfernte Eingriffe sind gefaehrlich. Lokale wp-cli-Aufrufe auf der
+# Nur entfernte Eingriffe sind gefährlich. Lokale wp-cli-Aufrufe auf der
 # Entwicklungsumgebung bleiben frei.
-# scp und rsync gehoeren zwingend dazu: eine Datenbankdatei ueber die entfernte
-# zu schieben ist der destruktivste Fall und enthaelt das Wort «ssh» nicht.
+# scp und rsync gehören zwingend dazu: eine Datenbankdatei über die entfernte
+# zu schieben ist der destruktivste Fall und enthält das Wort «ssh» nicht.
 printf '%s' "$cmd" | grep -qE '\b(ssh|scp|rsync)\b' || exit 0
 
 # Schreibt der Befehl in die Datenbank?
@@ -48,8 +48,8 @@ printf '%s' "$cmd" | grep -qE '\bdb[[:space:]]+(import|reset|drop)\b' && danger=
 if printf '%s' "$cmd" | grep -qE '\bdb[[:space:]]+query\b' && \
    printf '%s' "$cmd" | grep -qiE '\b(insert|update|delete|drop|alter|truncate|create|grant|revoke|replace[[:space:]]+into)\b'; then danger=1; fi
 
-# Eine komplette Datenbank per scp/rsync ueber die entfernte Datei schieben ist
-# der destruktivste Fall ueberhaupt und wurde bisher gar nicht erfasst.
+# Eine komplette Datenbank per scp/rsync über die entfernte Datei schieben ist
+# der destruktivste Fall überhaupt und wurde bisher gar nicht erfasst.
 if printf '%s' "$cmd" | grep -qE '\b(scp|rsync)\b' && \
    printf '%s' "$cmd" | grep -qE '\.(sql|sqlite|sqlite3|db)(\.gz|\.zip|\.bz2)?\b'; then danger=1; fi
 
@@ -62,7 +62,7 @@ fi
 
 # Kein frischer Snapshot -> blockieren, mit konkreter Handlungsanweisung.
 if command -v jq >/dev/null 2>&1; then
-  jq -n --arg r "Remote-Schreibzugriff auf eine WordPress-Datenbank ohne frischen Snapshot (juenger als ${FRESH_MIN} Minuten). ${HINT}" '{
+  jq -n --arg r "Remote-Schreibzugriff auf eine WordPress-Datenbank ohne frischen Snapshot (jünger als ${FRESH_MIN} Minuten). ${HINT}" '{
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "deny",

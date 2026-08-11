@@ -8,7 +8,7 @@
             "type": "command",
             "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/protect-paths.sh",
             "args": [],
-            "statusMessage": "Pfad pruefen",
+            "statusMessage": "Pfad prüfen",
             "timeout": 15
           }
         ]
@@ -20,7 +20,7 @@
             "type": "command",
             "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-bash.sh",
             "args": [],
-            "statusMessage": "Befehl pruefen",
+            "statusMessage": "Befehl prüfen",
             "timeout": 15
           }
         ]
@@ -34,7 +34,7 @@
             "type": "command",
             "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/lint-file.sh",
             "args": [],
-            "statusMessage": "Syntax pruefen",
+            "statusMessage": "Syntax prüfen",
             "timeout": 30
           }
         ]

@@ -52,7 +52,7 @@ Hier bleibt `${CLAUDE_PROJECT_DIR}` unverändert, der Platzhalter zeigt von selb
 python3 pruefstand.py
 ```
 
-Erwartet: `79 von 79 Faellen wie erwartet`. Das Skript prüft die Hooks in `~/.claude/hooks`. Für einen anderen Ort:
+Erwartet: `79 von 79 Fällen wie erwartet`. Das Skript prüft die Hooks in `~/.claude/hooks`. Für einen anderen Ort:
 
 ```bash
 HOOKS=/pfad/zu/hooks python3 pruefstand.py

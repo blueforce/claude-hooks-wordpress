@@ -1,7 +1,7 @@
 #!/bin/bash
-# Wird von den anderen Hooks eingebunden. Enthaelt die jq-Pruefung und die
-# Ausgabefunktionen. Ohne diese Pruefung waeren alle Guards bei fehlendem jq
-# still wirkungslos, der Schutz faellt sonst lautlos aus.
+# Wird von den anderen Hooks eingebunden. Enthält die jq-Prüfung und die
+# Ausgabefunktionen. Ohne diese Prüfung wären alle Guards bei fehlendem jq
+# still wirkungslos, der Schutz fällt sonst lautlos aus.
 
 require_jq() {
   if ! command -v jq >/dev/null 2>&1; then
@@ -10,7 +10,7 @@ require_jq() {
   fi
 }
 
-# decide <allow|deny|ask> <Begruendung>
+# decide <allow|deny|ask> <Begründung>
 decide() {
   jq -n --arg d "$1" --arg r "$2" '{
     hookSpecificOutput: {

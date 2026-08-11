@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Vollstaendiger Pruefstand fuer die Claude-Code-Hooks.
+"""Vollständiger Prüfstand für die Claude-Code-Hooks.
 
-Prueft drei Ebenen:
-1. Vertrag   - haelt sich die Ausgabe an das dokumentierte JSON-Schema?
+Prüft drei Ebenen:
+1. Vertrag   - hält sich die Ausgabe an das dokumentierte JSON-Schema?
 2. Verhalten - entscheidet jeder Hook bei realistischen Eingaben richtig?
 3. Robustheit- was passiert bei kaputten, leeren oder exotischen Eingaben?
 """
@@ -43,16 +43,16 @@ def classify(p):
     try:
         data = json.loads(out)
     except json.JSONDecodeError:
-        return "invalid", "stdout ist kein gueltiges JSON"
+        return "invalid", "stdout ist kein gültiges JSON"
     hso = data.get("hookSpecificOutput")
     if hso:
         if hso.get("hookEventName") != "PreToolUse":
             return "invalid", "hookEventName fehlt oder falsch"
         d = hso.get("permissionDecision")
         if d not in ("allow", "deny", "ask"):
-            return "invalid", f"unzulaessige permissionDecision: {d}"
+            return "invalid", f"unzulässige permissionDecision: {d}"
         if not hso.get("permissionDecisionReason"):
-            return "invalid", "Begruendung fehlt"
+            return "invalid", "Begründung fehlt"
         return d, None
     if "terminalSequence" in data:
         return "notify", None
@@ -62,13 +62,13 @@ def classify(p):
 
 
 def check(script, payload, expected, desc, raw=None):
-    """expected darf ein Wert oder ein Tupel zulaessiger Werte sein."""
+    """expected darf ein Wert oder ein Tupel zulässiger Werte sein."""
     text = raw if raw is not None else json.dumps({**BASE, **payload})
     p, ms = run(script, text)
     got, problem = classify(p)
-    zulaessig = expected if isinstance(expected, tuple) else (expected,)
-    ok = (got in zulaessig) and problem is None
-    expected = " oder ".join(zulaessig)
+    erlaubt = expected if isinstance(expected, tuple) else (expected,)
+    ok = (got in erlaubt) and problem is None
+    expected = " oder ".join(erlaubt)
     results.append((ok, expected, got, desc, problem, ms))
 
 
@@ -88,10 +88,10 @@ def edit(path, tool="Edit"):
 
 R = "/Users/rogerperren/Sites/kunde"
 
-# --- Loeschbefehle -----------------------------------------------------------
+# --- Löschbefehle -----------------------------------------------------------
 check(G, bash("rm -rf /"), "deny", "rm -rf /")
 check(G, bash("rm -rf /*"), "deny", "rm -rf /*")
-check(G, bash('rm -rf "/"'), "deny", "rm -rf mit Anfuehrungszeichen")
+check(G, bash('rm -rf "/"'), "deny", "rm -rf mit Anführungszeichen")
 check(G, bash("rm -rf '/'"), "deny", "rm -rf mit Hochkomma")
 check(G, bash("rm -rf ~"), "deny", "rm -rf ~")
 check(G, bash("rm -rf $HOME"), "deny", "rm -rf $HOME")
@@ -113,14 +113,14 @@ check(G, bash("git reset --hard HEAD~1"), "ask", "hartes Reset")
 check(G, bash("chmod 777 wp-content/uploads"), "ask", "chmod 777")
 check(G, bash("chmod 755 wp-content/uploads"), "allow", "chmod 755")
 
-# --- Umgehung des Pfadschutzes ueber die Shell -------------------------------
+# --- Umgehung des Pfadschutzes über die Shell -------------------------------
 check(G, bash("cat > wp-includes/version.php << 'EOF'\nx\nEOF"), "ask", "Core schreiben per Umleitung")
 check(G, bash("sed -i '' 's/a/b/' vendor/lib.php"), "ask", "sed -i auf vendor")
 check(G, bash("cp neu.php node_modules/x/alt.php"), "ask", "cp nach node_modules")
 check(G, bash("grep -r foo wp-includes/"), "allow", "Core nur durchsuchen")
 check(G, bash("cat wp-includes/version.php"), "allow", "Core nur lesen")
 
-# --- Alltagsbefehle, die nicht stoeren duerfen -------------------------------
+# --- Alltagsbefehle, die nicht stören dürfen -------------------------------
 check(G, bash("npm run build"), "allow", "npm run build")
 check(G, bash("composer install"), "allow", "composer install")
 check(G, bash("rsync -av dist/ server:/var/www/"), "allow", "rsync eines Builds")
@@ -154,7 +154,7 @@ check(P, edit(f"{R}/wp-content/themes/bf/environment.php"), "allow", "environmen
 
 # --- Schreibschutz entfernter Datenbanken (wp-db-guard) ----------------------
 # Der Marker-Ordner zeigt auf ein garantiert leeres Verzeichnis, damit die Tests
-# nicht davon abhaengen, ob zufaellig gerade ein echter Snapshot frisch ist.
+# nicht davon abhängen, ob zufällig gerade ein echter Snapshot frisch ist.
 os.environ["WP_DB_GUARD_MARKERDIR"] = "/tmp/wp-db-guard-pruefstand-leer"
 check(G, bash("ssh live 'wp post update 12 --post_status=draft'"), "deny", "Remote post update ohne Snapshot")
 check(G, bash("ssh live 'wp option update siteurl https://x'"), "deny", "Remote option update ohne Snapshot")
@@ -193,7 +193,7 @@ check(P, {}, "allow", "kaputtes JSON", raw="{nicht json")
 check(P, edit(""), "allow", "leerer Dateipfad")
 check(G, bash("x" * 5000), "allow", "sehr langer Befehl")
 check(P, {"tool_name": "Edit", "tool_input": {}}, "allow", "tool_input ohne Pfad")
-check(N, {"hook_event_name": "Notification", "message": "Freigabe noetig"}, ("notify", "allow"), "Benachrichtigung")
+check(N, {"hook_event_name": "Notification", "message": "Freigabe nötig"}, ("notify", "allow"), "Benachrichtigung")
 check(N, {"hook_event_name": "Notification"}, ("notify", "allow"), "Benachrichtigung ohne Text")
 
 
@@ -207,7 +207,7 @@ def main():
         if not ok:
             print(f"FEHLT   erwartet={exp:<7} ist={got:<7} {desc}"
                   + (f"  [{problem}]" if problem else ""))
-    print(f"\n{len(results) - len(fails)} von {len(results)} Faellen wie erwartet")
+    print(f"\n{len(results) - len(fails)} von {len(results)} Fällen wie erwartet")
     langsam = max(r[5] for r in results)
     print(f"langsamster Hook: {langsam:.0f} ms"
           f"{'  (auf macOS normal, osascript braucht kurz)' if langsam > 100 else ''}")
